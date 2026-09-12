@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Monthly Report | PAHDMS</title>
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+
+    <link rel="stylesheet" href="css/monthly-report.css?v=2">
+<link rel="stylesheet" href="css/mobile.css?v=2">
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase.js?v=2"></script>
+    <script src="js/common.js?v=4"></script>
+    <script src="js/monthly-report.js?v=4" defer></script>
+
+</head>
+
+<body>
+
+<!-- SIDEBAR -->
+
+<aside class="sidebar">
+
+    <div class="logo">
+
+        <i class="fa-solid fa-cow"></i>
+
+        <h2>PAHDMS</h2>
+
+        <p>Fazilka District</p>
+
+    </div>
+
+    <nav>
+
+        <a href="dashboard.html">
+            <i class="fa-solid fa-house"></i>
+            Dashboard
+        </a>
+
+        <a href="institution.html">
+            <i class="fa-solid fa-building"></i>
+            Institutions
+        </a>
+
+        <a href="employee_new.html">
+            <i class="fa-solid fa-user-doctor"></i>
+            Employees
+        </a>
+
+        <a href="user-management.html">
+            <i class="fa-solid fa-users"></i>
+            User Management
+        </a>
+
+        <a class="active" href="monthly-report.html">
+            <i class="fa-solid fa-clipboard-list"></i>
+            Monthly Report
+        </a>
+
+        <a href="reports.html">
+            <i class="fa-solid fa-chart-column"></i>
+            Reports
+        </a>
+
+        <a href="live-tracking.html">
+            <i class="fa-solid fa-location-dot"></i>
+            Live Tracking
+        </a>
+
+        <a href="settings.html">
+            <i class="fa-solid fa-gear"></i>
+            Settings
+        </a>
+
+    </nav>
+
+</aside>
+
+
+<!-- MAIN CONTENT -->
+
+<main class="content">
+
+    <!-- HEADER -->
+
+    <div class="page-header">
+
+        <div>
+
+            <h1>
+                <i class="fa-solid fa-clipboard-list"></i>
+                Monthly Report
+            </h1>
+
+            <p>
+                Punjab Animal Husbandry Department � Fazilka
+            </p>
+
+        </div>
+
+        <div class="header-buttons">
+
+            <button
+                id="createReportBtn"
+                class="btn-primary"
+                type="button">
+
+                <i class="fa-solid fa-plus"></i>
+
+                Create Monthly Report
+
+            </button>
+
+        </div>
+
+    </div>
+<!-- CREATE MONTHLY REPORT MODAL -->
+
+<div id="createReportModal" class="modal" style="display:none;">
+
+    <div class="modal-content">
+
+        <div class="modal-header">
+
+            <h2>
+                <i class="fa-solid fa-file-circle-plus"></i>
+                Create Monthly Report
+            </h2>
+
+            <button
+                id="closeCreateReportBtn"
+                type="button"
+                class="modal-close">
+
+                <i class="fa-solid fa-xmark"></i>
+
+            </button>
+
+        </div>
+
+
+        <div class="form-group">
+
+            <label for="createReportMonth">
+                Report Month
+            </label>
+
+            <select id="createReportMonth">
+
+                <option value="">Select Month</option>
+
+                <option value="4">April</option>
+                <option value="5">May</option>
+                <option value="6">June</option>
+                <option value="7">July</option>
+                <option value="8">August</option>
+                <option value="9">September</option>
+                <option value="10">October</option>
+                <option value="11">November</option>
+                <option value="12">December</option>
+                <option value="1">January</option>
+                <option value="2">February</option>
+                <option value="3">March</option>
+
+            </select>
+
+        </div>
+
+
+        <div class="form-group">
+
+            <label for="createReportYear">
+                Financial Year
+            </label>
+
+            <select id="createReportYear">
+
+                <option value="">Select Financial Year</option>
+
+                <option value="2025">2025-26 (Apr 2025 – Mar 2026)</option>
+                <option value="2026" selected>2026-27 (Apr 2026 – Mar 2027)</option>
+                <option value="2027">2027-28 (Apr 2027 – Mar 2028)</option>
+
+            </select>
+
+        </div>
+
+
+        <div class="form-group">
+
+            <label for="createReportInstitution">
+                Institution
+            </label>
+
+            <select id="createReportInstitution">
+
+                <option value="">
+                    Select Institution
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <div class="modal-buttons">
+
+            <button
+                id="saveCreateReportBtn"
+                class="btn-primary"
+                type="button">
+
+                <i class="fa-solid fa-save"></i>
+                Create Draft
+
+            </button>
+
+
+            <button
+                id="cancelCreateReportBtn"
+                type="button">
+
+                Cancel
+
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+    <!-- FILTERS -->
+
+    <div class="filter-card">
+
+        <div class="filter-group">
+
+            <label for="reportMonth">
+                Month
+            </label>
+
+            <select id="reportMonth">
+
+                <option value="ALL">
+                    All Months
+                </option>
+
+                <option value="4">April</option>
+                <option value="5">May</option>
+                <option value="6">June</option>
+                <option value="7">July</option>
+                <option value="8">August</option>
+                <option value="9">September</option>
+                <option value="10">October</option>
+                <option value="11">November</option>
+                <option value="12">December</option>
+                <option value="1">January</option>
+                <option value="2">February</option>
+                <option value="3">March</option>
+
+            </select>
+
+        </div>
+
+
+        <div class="filter-group">
+
+            <label for="reportYear">
+                Financial Year
+            </label>
+
+            <select id="reportYear">
+
+                <option value="ALL">
+                    All Years
+                </option>
+
+                <option value="2025">
+                    2025-26
+                </option>
+
+                <option value="2026" selected>
+                    2026-27
+                </option>
+
+                <option value="2027">
+                    2027-28
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <div class="filter-group">
+
+            <select id="reportInstitution">
+
+    <option value="ALL">
+        All Institutions
+    </option>
+
+</select>
+
+        </div>
+
+
+        <div class="filter-group">
+
+            <label for="reportStatus">
+                Status
+            </label>
+
+            <select id="reportStatus">
+
+                <option value="ALL">
+                    All Status
+                </option>
+
+                <option value="Draft">
+                    Draft
+                </option>
+
+                <option value="Submitted">
+                    Submitted
+                </option>
+
+                <option value="Verified">
+                    Verified
+                </option>
+
+                <option value="Approved">
+                    Approved
+                </option>
+
+                <option value="Locked">
+                    Locked
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <div class="filter-group search-group">
+
+            <label for="reportSearch">
+                Search
+            </label>
+
+            <input
+                type="text"
+                id="reportSearch"
+                placeholder="Search institution...">
+
+        </div>
+
+    </div>
+
+
+
+
+
+    <!-- STATISTICS -->
+
+    <div class="stats-grid">
+
+        <div class="stat-card">
+
+            <h3 id="totalReports">
+                0
+            </h3>
+
+            <p>Total Reports</p>
+
+        </div>
+
+
+        <div class="stat-card">
+
+            <h3 id="draftReports">
+                0
+            </h3>
+
+            <p>Draft</p>
+
+        </div>
+
+
+        <div class="stat-card">
+
+            <h3 id="submittedReports">
+                0
+            </h3>
+
+            <p>Submitted</p>
+
+        </div>
+
+
+        <div class="stat-card">
+
+            <h3 id="verifiedReports">
+                0
+            </h3>
+
+            <p>Verified</p>
+
+        </div>
+
+
+        <div class="stat-card">
+
+            <h3 id="lockedReports">
+                0
+            </h3>
+
+            <p>Locked</p>
+
+        </div>
+
+    </div>
+
+
+ 
+<!-- REPORT TABLE -->
+
+<div class="table-card">
+
+    <table id="monthlyReportTable">
+
+        <thead>
+
+            <tr>
+
+                <th>Sr No</th>
+                <th>Month</th>
+                <th>Year</th>
+                <th>Institution</th>
+                <th>Type</th>
+                <th>Status</th>
+                <th>Action</th>
+
+            </tr>
+
+        </thead>
+
+        <tbody id="monthlyReportTableBody">
+
+            <tr>
+
+                <td
+                    colspan="7"
+                    style="text-align:center;padding:30px;">
+
+                    Loading Reports...
+
+                </td>
+
+            </tr>
+
+        </tbody>
+
+    </table>
+
+</div>
+
+
+    <!-- PAGINATION -->
+
+    <div class="pagination-container">
+
+        <div id="reportRecordInfo">
+
+            Showing 0 Records
+
+        </div>
+
+
+        <div class="pagination-buttons">
+
+            <button
+                id="reportPrevBtn"
+                type="button">
+
+                <i class="fa-solid fa-angle-left"></i>
+
+                Previous
+
+            </button>
+
+
+            <span id="reportPageNumber">
+
+                Page 1
+
+            </span>
+
+
+            <button
+                id="reportNextBtn"
+                type="button">
+
+                Next
+
+                <i class="fa-solid fa-angle-right"></i>
+
+            </button>
+
+        </div>
+
+    </div>
+
+
+</main>
+
+</body>
+
+</html>

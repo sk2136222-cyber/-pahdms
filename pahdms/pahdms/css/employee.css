@@ -1,0 +1,246 @@
+/* Employee Management - matches app.css theme */
+
+.toolbar{
+  background:#fff;
+  border:1px solid #e2e8f0;
+  border-radius:10px;
+  padding:16px 18px;
+  margin-bottom:20px;
+  display:flex;
+  flex-wrap:wrap;
+  gap:14px;
+  align-items:center;
+  box-shadow:0 1px 3px rgba(0,0,0,.04);
+}
+.toolbar input[type="text"]{
+  flex:1;
+  min-width:200px;
+  padding:10px 12px;
+  border:1px solid #e2e8f0;
+  border-radius:6px;
+  font-size:13.5px;
+}
+.toolbar select{
+  padding:10px 12px;
+  border:1px solid #e2e8f0;
+  border-radius:6px;
+  font-size:13.5px;
+  min-width:150px;
+  background:#fff;
+}
+.toolbar input:focus,.toolbar select:focus{
+  outline:none;
+  border-color:#0B6E4F;
+}
+
+.stats-grid{
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  gap:14px;
+  margin-bottom:20px;
+}
+.stat-card{
+  background:#fff;
+  border:1px solid #e2e8f0;
+  border-left:4px solid #0B6E4F;
+  border-radius:8px;
+  padding:16px 18px;
+  box-shadow:0 1px 3px rgba(0,0,0,.04);
+}
+.stat-card h3{
+  font-size:26px;
+  color:#0B6E4F;
+  font-weight:700;
+}
+.stat-card p{
+  font-size:12px;
+  color:#6b7280;
+  margin-top:4px;
+  text-transform:uppercase;
+  letter-spacing:.4px;
+}
+
+.table-card{
+  background:#fff;
+  border:1px solid #e2e8f0;
+  border-radius:10px;
+  overflow:auto;
+  margin-bottom:18px;
+  box-shadow:0 1px 3px rgba(0,0,0,.04);
+}
+#employeeTable{
+  width:100%;
+  border-collapse:collapse;
+  min-width:800px;
+}
+#employeeTable thead{
+  background:#0B6E4F;
+  color:#fff;
+}
+#employeeTable thead th{
+  padding:12px 14px;
+  text-align:left;
+  font-size:12.5px;
+  text-transform:uppercase;
+  letter-spacing:.4px;
+  font-weight:600;
+}
+#employeeTable tbody td{
+  padding:12px 14px;
+  border-bottom:1px solid #e2e8f0;
+  font-size:13.5px;
+}
+#employeeTable tbody tr:hover{
+  background:#f5f9fc;
+}
+#employeeTable tbody tr:last-child td{
+  border-bottom:none;
+}
+
+.pagination-container{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:10px;
+  font-size:13px;
+  color:#6b7280;
+}
+.pagination-buttons{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+.pagination-buttons button{
+  background:#fff;
+  border:1px solid #e2e8f0;
+  padding:8px 14px;
+  border-radius:6px;
+  cursor:pointer;
+  font-size:13px;
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+.pagination-buttons button:hover{
+  background:#f2f5f8;
+}
+
+.modal{
+  position:fixed;
+  inset:0;
+  background:rgba(11,110,79,.4);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:1000;
+}
+.modal-content{
+  background:#fff;
+  border-radius:10px;
+  padding:24px 26px;
+  width:100%;
+  max-width:420px;
+  box-shadow:0 10px 30px rgba(0,0,0,.2);
+}
+.modal-content h2{
+  font-size:17px;
+  color:#0B6E4F;
+  margin-bottom:18px;
+  padding-bottom:14px;
+  border-bottom:1px solid #e2e8f0;
+}
+.form-group{
+  margin-bottom:15px;
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+.form-group label{
+  font-size:12.5px;
+  font-weight:600;
+  color:#6b7280;
+}
+.form-group select,.form-group input{
+  padding:9px 10px;
+  border:1px solid #e2e8f0;
+  border-radius:6px;
+  font-size:13.5px;
+}
+.modal-buttons{
+  display:flex;
+  gap:10px;
+  margin-top:20px;
+}
+.modal-buttons button:not(#saveEmployeeBtn){
+  flex:1;
+  background:#fff;
+  border:1px solid #e2e8f0;
+  padding:10px;
+  border-radius:6px;
+  cursor:pointer;
+}
+
+@media(max-width:900px){
+  .stats-grid{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:600px){
+  .stats-grid{grid-template-columns:1fr}
+  .toolbar{flex-direction:column;align-items:stretch}
+}
+.page-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:14px;
+  margin-bottom:22px;
+}
+.page-header h1{
+  font-size:24px;
+  color:#0B6E4F;
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.page-header p{
+  color:#6b7280;
+  font-size:13px;
+  margin-top:4px;
+}
+.header-buttons{
+  display:flex;
+  gap:10px;
+}
+.btn-primary{
+  background:#0B6E4F;
+  color:#fff;
+  border:none;
+  padding:10px 18px;
+  border-radius:6px;
+  font-size:14px;
+  font-weight:600;
+  cursor:pointer;
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+}
+.btn-primary:hover{
+  background:#08543b;
+}
+.btn-success{
+  background:#1d4ed8;
+  color:#fff;
+  border:none;
+  padding:10px 18px;
+  border-radius:6px;
+  font-size:14px;
+  font-weight:600;
+  cursor:pointer;
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+}
+.btn-success:hover{
+  background:#1739a8;
+}
