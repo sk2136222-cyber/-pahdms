@@ -1,0 +1,311 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Employee Management | Punjab AHD</title>
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+
+ <link rel="stylesheet" href="css/app.css?v=2">   <link rel="stylesheet" href="css/employee.css?v=2">
+<link rel="stylesheet" href="css/mobile.css?v=2">
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase.js?v=2"></script>
+    <script src="js/common.js?v=4"></script>
+    <script src="js/employee.js?v=3" defer></script>
+</head>
+
+<body>
+
+<div class="layout">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+
+        <div class="logo">
+            <i class="fa-solid fa-cow"></i>
+            <h2>PAHDMS</h2>
+            <p>Fazilka District</p>
+        </div>
+
+        <nav>
+            <a href="dashboard.html">
+                <i class="fa-solid fa-house"></i>
+                Dashboard
+            </a>
+
+            <a href="institution.html">
+                <i class="fa-solid fa-building"></i>
+                Institutions
+            </a>
+
+            <a class="active" href="employee_new.html">
+                <i class="fa-solid fa-user-doctor"></i>
+                Employees
+            </a>
+
+            <a href="user-management.html">
+                <i class="fa-solid fa-users"></i>
+                User Management
+            </a>
+
+            <a href="monthly-report.html">
+                <i class="fa-solid fa-clipboard-list"></i>
+                Monthly Report
+            </a>
+
+            <a href="reports.html">
+                <i class="fa-solid fa-chart-column"></i>
+                Reports
+            </a>
+
+            <a href="live-tracking.html">
+                <i class="fa-solid fa-location-dot"></i>
+                Live Tracking
+            </a>
+
+            <a href="settings.html">
+                <i class="fa-solid fa-gear"></i>
+                Settings
+            </a>
+        </nav>
+
+    </aside>
+
+    <!-- Main Content -->
+    <main class="content main-content">
+        <!-- Page Header -->
+        <div class="page-header">            <div>
+                <h1>
+                    <i class="fa-solid fa-user-tie"></i>
+                    Employee Management
+                </h1>
+
+                <p>Punjab Animal Husbandry Department • Fazilka</p>
+            </div>
+
+            <div class="header-buttons">
+
+                <button id="exportEmployeeBtn" class="btn-success" type="button">
+                    <i class="fa-solid fa-file-export"></i>
+                    Export CSV
+                </button>
+
+                <button id="addEmployeeBtn" class="btn-primary" type="button">
+                    <i class="fa-solid fa-plus"></i>
+                    Add Employee
+                </button>
+
+            </div>
+
+        </div>
+
+        <!-- Statistics -->
+        <div class="stats-grid">
+
+            <div class="stat-card">
+                <h3 id="totalEmployees">0</h3>
+                <p>Total Employees</p>
+            </div>
+
+            <div class="stat-card">
+                <h3 id="totalVO">0</h3>
+                <p>VO</p>
+            </div>
+
+            <div class="stat-card">
+                <h3 id="totalVI">0</h3>
+                <p>VI</p>
+            </div>
+
+            <div class="stat-card">
+                <h3 id="totalAIW">0</h3>
+                <p>AIW</p>
+            </div>
+
+            <div class="stat-card">
+                <h3 id="totalVP">0</h3>
+                <p>VP</p>
+            </div>
+
+            <div class="stat-card">
+                <h3 id="totalActive">0</h3>
+                <p>Active</p>
+            </div>
+
+        </div>
+
+        <!-- Toolbar -->
+        <div class="toolbar">
+
+            <input
+                type="text"
+                id="employeeSearch"
+                placeholder="Search Employee...">
+
+            <select id="designationFilter">
+                <option value="ALL">All Designations</option>
+                <option value="VO">VO</option>
+                <option value="VI">VI</option>
+                <option value="AIW">AIW</option>
+                <option value="VP">VP</option>
+            </select>
+
+            <select id="institutionFilter">
+                <option value="ALL">All Institutions</option>
+            </select>
+
+            <select id="statusFilter">
+                <option value="ALL">All Status</option>
+                <option value="ACTIVE">Active</option>
+                <option value="INACTIVE">Inactive</option>
+            </select>
+
+        </div>
+
+        <!-- Employee Table -->
+        <div class="table-card">
+
+            <table id="employeeTable">
+
+                <thead>
+                    <tr>
+                        <th>Sr No</th>
+                        <th>Employee Name</th>
+                        <th>Designation</th>
+                        <th>Institution</th>
+                        <th>Mobile</th>
+                        <th>Location</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+
+                <tbody id="employeeTableBody">
+                    <!-- Employee records loaded by employee.js -->
+                </tbody>
+
+            </table>
+
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination-container">
+
+            <div id="recordInfo">
+                Showing 0 Records
+            </div>
+
+            <div class="pagination-buttons">
+
+                <button id="prevPageBtn" type="button">
+                    <i class="fa-solid fa-angle-left"></i>
+                    Previous
+                </button>
+
+                <span id="pageNumber">Page 1</span>
+
+                <button id="nextPageBtn" type="button">
+                    Next
+                    <i class="fa-solid fa-angle-right"></i>
+                </button>
+
+            </div>
+
+        </div>
+
+        <!-- Add / Edit Employee Modal -->
+        <div id="employeeModal" class="modal" style="display:none;">
+
+            <div class="modal-content">
+
+                <h2>Add / Edit Employee</h2>
+
+                <input type="hidden" id="employeeEditId">
+
+                <div class="form-group">
+                    <label>Employee Code</label>
+                    <input type="text" id="employeeCode">
+                </div>
+
+                <div class="form-group">
+                    <label>Employee Name</label>
+                    <input type="text" id="employeeName">
+                </div>
+
+                <div class="form-group">
+                    <label>Designation</label>
+
+                    <select id="designation">
+                        <option value="">Select Designation</option>
+                        <option value="VO">VO</option>
+                        <option value="VI">VI</option>
+                        <option value="AIW">AIW</option>
+                        <option value="VP">VP</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Institution</label>
+                    <select id="employeeInstitution">
+                        <option value="">Select Institution</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Mobile Number</label>
+                    <input type="text" id="employeeMobile" maxlength="10">
+                </div>
+
+                <div class="form-group" id="locationFieldGroup" style="display:none;">
+                    <label>Location (VO/VI only)</label>
+                    <div style="display:flex;gap:10px;align-items:center;">
+                        <button type="button" id="captureLocationBtn" class="btn-primary" style="white-space:nowrap;">
+                            📍 Get Current Location
+                        </button>
+                        <span id="locationStatus" style="font-size:13px;color:#666;">
+                            No location captured
+                        </span>
+                    </div>
+                    <input type="hidden" id="employeeLatitude">
+                    <input type="hidden" id="employeeLongitude">
+                </div>
+
+                <div class="form-group">
+                    <label>Status</label>
+
+                    <select id="employeeStatus">
+                        <option value="true">Active</option>
+                        <option value="false">Inactive</option>
+                    </select>
+                </div>
+
+                <div class="modal-buttons">
+
+                    <button id="saveEmployeeBtn" class="btn-primary" type="button">
+                        Save Employee
+                    </button>
+
+                    <button
+                        id="closeEmployeeBtn"
+                        type="button"
+                        onclick="closeEmployeeModal()">
+                        Cancel
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </main>
+
+</div>
+
+</body>
+</html>
