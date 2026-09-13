@@ -17,7 +17,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/supabase.js?v=2"></script>
     <script src="js/common.js?v=5"></script>
-    <script src="js/monthly-report.js?v=4" defer></script>
+    <script src="js/monthly-report.js?v=5" defer></script>
 
 </head>
 
@@ -118,6 +118,18 @@
             </button>
 
             <button
+                id="manageTargetsBtn"
+                class="btn-primary"
+                style="display:none; background:#0b3d66;"
+                type="button">
+
+                <i class="fa-solid fa-bullseye"></i>
+
+                Manage Targets
+
+            </button>
+
+            <button
                 id="createReportBtn"
                 class="btn-primary"
                 type="button">
@@ -131,7 +143,50 @@
         </div>
 
     </div>
-<!-- CREATE MONTHLY REPORT MODAL -->
+<!-- MANAGE TARGETS MODAL -->
+
+<div id="targetsModal" class="modal" style="display:none;">
+
+    <div class="modal-content" style="max-width:720px;">
+
+        <div class="modal-header">
+            <h2><i class="fa-solid fa-bullseye"></i> Manage Financial Year Targets</h2>
+            <button class="modal-close" onclick="closeTargetsModal()" type="button">&times;</button>
+        </div>
+
+        <div class="form-group">
+            <label for="targetsFinancialYear">Financial Year</label>
+            <select id="targetsFinancialYear" onchange="loadTargets()">
+                <option value="2025">2025-26 (Apr 2025 – Mar 2026)</option>
+                <option value="2026" selected>2026-27 (Apr 2026 – Mar 2027)</option>
+                <option value="2027">2027-28 (Apr 2027 – Mar 2028)</option>
+            </select>
+        </div>
+
+        <p style="font-size:13px;color:#666;margin:10px 0 16px;">
+            Enter each institution's <strong>annual</strong> target — the monthly
+            target used to check reports is this number ÷ 12.
+        </p>
+
+        <div class="table-wrap" style="max-height:420px;overflow:auto;">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Institution</th>
+                        <th>New OPD (Annual Target)</th>
+                        <th>Cattle+Buffalo AI (Annual Target)</th>
+                        <th>Save</th>
+                    </tr>
+                </thead>
+                <tbody id="targetsTableBody">
+                    <tr><td colspan="4">Loading...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+
+</div>
 
 <div id="createReportModal" class="modal" style="display:none;">
 

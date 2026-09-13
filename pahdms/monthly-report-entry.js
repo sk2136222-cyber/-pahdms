@@ -329,8 +329,29 @@ function renderPage() {
     <div class="info-card"><span>Block</span><strong>${esc(inst?.block||'-')}</strong></div>
     <div class="info-card"><span>Report Period</span><strong>${esc(getMonthName(currentReport.report_month))} ${currentReport.report_year}</strong></div>
     <div class="info-card"><span>Status</span><strong>${esc(status)}</strong></div>`;
-  const statusOptions=['Draft','Submitted'].map(s=>`<option value="${s}" ${status===s?'selected':''}>${s}</option>`).join('');
-  document.getElementById('statusArea').innerHTML=`<div><label>Status</label><select id="statusSelect" ${readOnly?'disabled':''}>${statusOptions}</select></div><button class="btn secondary" onclick="updateReportStatus()" ${readOnly?'disabled':''}>Update Status</button>`;
+
+  // VO/VI can move Draft -> Submitted. district_admin/block_officer can
+  // move Submitted -> Verified (or send it back to Draft). Anything
+  // else (already Verified/Locked, or the wrong role for this state)
+  // is locked.
+  const pageUser = getCurrentUser();
+  const isApprover = pageUser && (pageUser.role === 'district_admin' || pageUser.role === 'block_officer');
+  const isOwner = pageUser && (pageUser.role === 'vo' || pageUser.role === 'vi');
+
+  let statusOptionList, statusControlsDisabled;
+  if (isApprover && status === 'Submitted') {
+    statusOptionList = ['Submitted', 'Draft', 'Verified'];
+    statusControlsDisabled = false;
+  } else if (isOwner && status === 'Draft') {
+    statusOptionList = ['Draft', 'Submitted'];
+    statusControlsDisabled = false;
+  } else {
+    statusOptionList = [status];
+    statusControlsDisabled = true;
+  }
+
+  const statusOptions=statusOptionList.map(s=>`<option value="${s}" ${status===s?'selected':''}>${s}</option>`).join('');
+  document.getElementById('statusArea').innerHTML=`<div><label>Status</label><select id="statusSelect" ${statusControlsDisabled?'disabled':''}>${statusOptions}</select></div><button class="btn secondary" onclick="updateReportStatus()" ${statusControlsDisabled?'disabled':''}>Update Status</button>`;
   document.getElementById('mprBody').innerHTML=SECTIONS.map(renderSection).join('');
   document.getElementById('backBtn').onclick=()=>location.href='monthly-report.html';
   updateSectionTotal('opd');
@@ -818,9 +839,91 @@ async function saveSection(sectionId){
   if(sectionId==='opd') fetchPrevMonthOpdTotal();
 }
 async function updateReportStatus(){
-  if(isReadOnly())return;const status=document.getElementById('statusSelect').value;
+  const status=document.getElementById('statusSelect').value;
+  const currentStatus = String(currentReport.status||'Draft');
+  const actingUser = getCurrentUser();
+  const actingIsApprover = actingUser && (actingUser.role === 'district_admin' || actingUser.role === 'block_officer');
+  const actingIsOwner = actingUser && (actingUser.role === 'vo' || actingUser.role === 'vi');
+
+  const allowedToChange =
+    (actingIsApprover && currentStatus === 'Submitted') ||
+    (actingIsOwner && currentStatus === 'Draft');
+
+  if (!allowedToChange) return;
+
+  // Moving a report to "Verified" is the approver's sign-off — warn
+  // them (but don't block) if the institution missed its monthly
+  // target for New OPD or Cattle+Buffalo AI this Financial Year.
+  if (status === 'Verified') {
+    const warning = await buildTargetWarningMessage();
+    if (warning && !confirm(warning + '\n\nDo you still want to Verify this report?')) {
+      return;
+    }
+  }
+
   const {error}=await supabaseClient.from('mpr_reports').update({status,updated_at:new Date().toISOString()}).eq('id',reportId);
   if(error){console.error('Status Update Error:',error);showMessage('Status update failed: '+error.message,'error');return;}
   currentReport.status=status;renderPage();showMessage('Report status updated to '+status+'.','success');
 }
+
+// =========================================================
+// FINANCIAL YEAR TARGET CHECK (New OPD & Cattle+Buffalo AI)
+// =========================================================
+
+function computeNewOpdAchieved() {
+  const data = currentSections['opd'] || {};
+  let total = 0;
+  OPD_SPECIES.forEach(sp => {
+    total += Number(data[`new_opd_${sp.key}`] || 0);
+  });
+  return total;
+}
+
+function computeCattleBuffaloAiAchieved() {
+  const data = currentSections['ai_semen'] || {};
+  let total = 0;
+  CATTLE_BREEDS.forEach(b => {
+    total += Number(data[`cattle_ai_during_month_${b.key}`] || 0);
+  });
+  BUFFALO_BREEDS.forEach(b => {
+    total += Number(data[`buffalo_ai_during_month_${b.key}`] || 0);
+  });
+  return total;
+}
+
+async function buildTargetWarningMessage() {
+  const monthNum = Number(currentReport.report_month);
+  const calendarYear = Number(currentReport.report_year);
+  const fyStartYear = monthNum >= 4 ? calendarYear : calendarYear - 1;
+
+  const { data: targetRow, error } = await supabaseClient
+    .from('institution_targets')
+    .select('*')
+    .eq('institution_id', currentReport.institution_id)
+    .eq('financial_year_start_year', fyStartYear)
+    .maybeSingle();
+
+  if (error || !targetRow) return null; // no target set — nothing to warn about
+
+  const monthlyOpdTarget = (targetRow.target_new_opd || 0) / 12;
+  const monthlyAiTarget = (targetRow.target_cattle_buffalo_ai || 0) / 12;
+
+  const opdAchieved = computeNewOpdAchieved();
+  const aiAchieved = computeCattleBuffaloAiAchieved();
+
+  const misses = [];
+  if (monthlyOpdTarget > 0 && opdAchieved < monthlyOpdTarget) {
+    misses.push(`New OPD: ${opdAchieved} / ${Math.round(monthlyOpdTarget)} (monthly target)`);
+  }
+  if (monthlyAiTarget > 0 && aiAchieved < monthlyAiTarget) {
+    misses.push(`Cattle+Buffalo AI: ${aiAchieved} / ${Math.round(monthlyAiTarget)} (monthly target)`);
+  }
+
+  if (!misses.length) return null;
+
+  return 'This institution has NOT achieved its monthly target for FY ' +
+    fyStartYear + '-' + String(fyStartYear + 1).slice(-2) + ':\n' +
+    misses.map(m => '• ' + m).join('\n');
+}
+
 document.addEventListener('DOMContentLoaded',async()=>{try{console.log('Monthly Report Entry Page Ready'); if(!supabaseClient) throw new Error('Supabase database object is not available.'); await loadReport();}catch(error){console.error('Monthly Report Entry Error:',error);const loading=document.getElementById('loading');if(loading) loading.style.display='none';showMessage(error.message||'Unable to load monthly report.','error');}});

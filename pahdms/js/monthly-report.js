@@ -43,6 +43,14 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     console.log("✅ Supabase database object available");
 
+    // "Manage Targets" is for district_admin / block_officer only
+    const currentUserForTargets = getCurrentUser();
+    const targetsBtn = document.getElementById("manageTargetsBtn");
+    if (targetsBtn && currentUserForTargets &&
+        (currentUserForTargets.role === "district_admin" || currentUserForTargets.role === "block_officer")) {
+        targetsBtn.style.display = "inline-flex";
+    }
+
     // Load institutions
     await loadInstitutions();
 
@@ -161,6 +169,19 @@ function setupEventListeners() {
         createBtn.addEventListener(
             "click",
             openCreateReport
+        );
+
+    }
+
+
+    const manageTargetsBtn =
+        document.getElementById("manageTargetsBtn");
+
+    if (manageTargetsBtn) {
+
+        manageTargetsBtn.addEventListener(
+            "click",
+            openTargetsModal
         );
 
     }
@@ -1522,3 +1543,105 @@ window.applyFilters =
 console.log(
     "✅ Monthly Report JS Ready"
 );
+
+// =========================================================
+// MANAGE TARGETS (Financial Year targets: New OPD & Cattle+Buffalo AI)
+// =========================================================
+
+async function openTargetsModal() {
+    const modal = document.getElementById("targetsModal");
+    if (modal) modal.style.display = "flex";
+    await loadTargets();
+}
+
+function closeTargetsModal() {
+    const modal = document.getElementById("targetsModal");
+    if (modal) modal.style.display = "none";
+}
+
+async function loadTargets() {
+
+    const tbody = document.getElementById("targetsTableBody");
+    if (!tbody) return;
+
+    tbody.innerHTML = `<tr><td colspan="4">Loading...</td></tr>`;
+
+    const fyStartYear = Number(
+        document.getElementById("targetsFinancialYear").value
+    );
+
+    // "institutions" is already scoped to the current officer's block
+    // (or all institutions for district_admin) by loadInstitutions().
+    const scopedInstitutions = institutions;
+
+    const { data: existingTargets, error } = await window.db
+        .from("institution_targets")
+        .select("*")
+        .eq("financial_year_start_year", fyStartYear);
+
+    if (error) {
+        console.error("Load Targets Error:", error);
+        tbody.innerHTML = `<tr><td colspan="4">Failed to load targets: ${esc(error.message)}</td></tr>`;
+        return;
+    }
+
+    const targetsByInstitution = {};
+    (existingTargets || []).forEach(t => {
+        targetsByInstitution[t.institution_id] = t;
+    });
+
+    if (!scopedInstitutions.length) {
+        tbody.innerHTML = `<tr><td colspan="4">No institutions found.</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = scopedInstitutions.map(inst => {
+        const existing = targetsByInstitution[inst.id];
+        const opdVal = existing ? existing.target_new_opd : "";
+        const aiVal = existing ? existing.target_cattle_buffalo_ai : "";
+
+        return `
+            <tr>
+                <td>${esc(inst.institution_code)} - ${esc(inst.institution_name)}</td>
+                <td><input type="number" min="0" id="targetOpd_${inst.id}" value="${opdVal}" style="width:100px;"></td>
+                <td><input type="number" min="0" id="targetAi_${inst.id}" value="${aiVal}" style="width:100px;"></td>
+                <td><button class="btn secondary" type="button" onclick="saveTarget('${inst.id}')">Save</button></td>
+            </tr>`;
+    }).join("");
+}
+
+async function saveTarget(institutionId) {
+
+    const fyStartYear = Number(
+        document.getElementById("targetsFinancialYear").value
+    );
+
+    const opdInput = document.getElementById(`targetOpd_${institutionId}`);
+    const aiInput = document.getElementById(`targetAi_${institutionId}`);
+
+    const targetNewOpd = Number(opdInput.value || 0);
+    const targetCattleBuffaloAi = Number(aiInput.value || 0);
+
+    const { error } = await window.db
+        .from("institution_targets")
+        .upsert({
+            institution_id: institutionId,
+            financial_year_start_year: fyStartYear,
+            target_new_opd: targetNewOpd,
+            target_cattle_buffalo_ai: targetCattleBuffaloAi,
+            updated_at: new Date().toISOString()
+        }, { onConflict: "institution_id,financial_year_start_year" });
+
+    if (error) {
+        console.error("Save Target Error:", error);
+        alert("Failed to save target: " + error.message);
+        return;
+    }
+
+    alert("Target saved.");
+}
+
+window.openTargetsModal = openTargetsModal;
+window.closeTargetsModal = closeTargetsModal;
+window.loadTargets = loadTargets;
+window.saveTarget = saveTarget;

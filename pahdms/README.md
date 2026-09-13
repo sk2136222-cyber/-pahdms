@@ -53,7 +53,7 @@ The app connects to a Supabase project configured in `js/supabase.js`.
 |---|---|
 | `css/` | Stylesheets, one per page area |
 | `js/` | Page logic + `common.js` (session/auth helpers) + `supabase.js` (DB client) |
-| `db/` | `V5.1_RLS_POLICIES.sql` — Postgres Row-Level-Security policies for Supabase; `V5.1_LIVE_TRACKING.sql` — table + policies for the Live Tracking page |
+| `db/` | `V5.1_RLS_POLICIES.sql` — Postgres Row-Level-Security policies for Supabase; `V5.1_LIVE_TRACKING.sql` — table + policies for the Live Tracking page; `V5.1_TARGETS.sql` — table + policies for Financial Year targets |
 
 ## Employee Live Tracking
 
