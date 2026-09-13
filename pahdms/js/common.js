@@ -299,6 +299,48 @@ document.addEventListener("DOMContentLoaded", setupMobileNav);
 // =====================================
 // HTML Escape (XSS protection)
 // =====================================
+// =====================================
+// Block Scoping (for block_officer role)
+// district_admin sees the whole district; block_officer should only
+// see their own block's institutions/employees/reports. This looks
+// up the officer's own "block" (from the users table) once per page
+// load and caches it, so every page can reuse the same lookup.
+// Returns null for district_admin (and any other role) — meaning
+// "no block filter should be applied".
+// =====================================
+let _myBlockCache = undefined; // undefined = not fetched yet this page load
+
+async function getMyBlock() {
+    if (_myBlockCache !== undefined) return _myBlockCache;
+
+    const user = getCurrentUser();
+    if (!user || user.role !== "block_officer" || !window.db) {
+        _myBlockCache = null;
+        return null;
+    }
+
+    try {
+        const { data, error } = await window.db
+            .from("users")
+            .select("block")
+            .eq("id", user.id)
+            .single();
+
+        if (error) {
+            console.error("getMyBlock error:", error);
+            _myBlockCache = null;
+            return null;
+        }
+
+        _myBlockCache = data?.block || null;
+    } catch (e) {
+        console.error("getMyBlock exception:", e);
+        _myBlockCache = null;
+    }
+
+    return _myBlockCache;
+}
+
 function esc(value) {
     return String(value ?? '').replace(/[&<>"']/g, ch => ({
         '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'

@@ -453,11 +453,19 @@ async function loadInstitutions() {
 
     try {
 
-        const { data, error } = await db
+        let instQuery = db
             .from("institutions")
             .select("*")
             .eq("active", true)
             .order("institution_name");
+
+        const myBlock = await getMyBlock();
+
+        if (myBlock) {
+            instQuery = instQuery.eq("block", myBlock);
+        }
+
+        const { data, error } = await instQuery;
 
 
         if (error) {
@@ -583,10 +591,24 @@ async function loadEmployees() {
 
     try {
 
-        const { data, error } = await db
+        let empQuery = db
             .from("employees")
             .select("*")
             .order("employee_name");
+
+        const myBlock = await getMyBlock();
+
+        if (myBlock) {
+            // Employees don't have a "block" column directly — join
+            // to institutions and filter on ITS block instead.
+            empQuery = db
+                .from("employees")
+                .select("*, institutions!inner(block)")
+                .eq("institutions.block", myBlock)
+                .order("employee_name");
+        }
+
+        const { data, error } = await empQuery;
 
 
         if (error) {

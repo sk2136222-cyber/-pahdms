@@ -54,28 +54,56 @@ async function loadDashboard() {
 
 async function loadKPIs() {
 
-    const institutionsResult = await db
+    const myBlock = await getMyBlock();
+
+    let institutionsQuery = db
         .from("institutions")
         .select("*", { count: "exact", head: true });
 
-    console.log("Institutions:", institutionsResult);
-
-    const employeesResult = await db
+    let employeesQuery = db
         .from("employees")
         .select("*", { count: "exact", head: true });
 
-    console.log("Employees:", employeesResult);
-
-    const usersResult = await db
+    let usersQuery = db
         .from("users")
         .select("*", { count: "exact", head: true });
 
-    console.log("Users:", usersResult);
-
-    const reportsResult = await db
+    let reportsQuery = db
         .from("mpr_reports")
         .select("*", { count: "exact", head: true })
         .eq("status", "Draft");
+
+    if (myBlock) {
+        institutionsQuery = institutionsQuery.eq("block", myBlock);
+        usersQuery = usersQuery.eq("block", myBlock);
+
+        // employees / mpr_reports don't have a "block" column directly,
+        // so join to institutions and filter on ITS block instead.
+        employeesQuery = db
+            .from("employees")
+            .select("*, institutions!inner(block)", { count: "exact", head: true })
+            .eq("institutions.block", myBlock);
+
+        reportsQuery = db
+            .from("mpr_reports")
+            .select("*, institutions!inner(block)", { count: "exact", head: true })
+            .eq("status", "Draft")
+            .eq("institutions.block", myBlock);
+    }
+
+    const institutionsResult = await institutionsQuery;
+
+    console.log("Institutions:", institutionsResult);
+
+    const employeesResult = await employeesQuery;
+
+    console.log("Employees:", employeesResult);
+
+    const usersResult = await usersQuery;
+
+    console.log("Users:", usersResult);
+
+    const reportsResult = await reportsQuery;
 
     console.log("Reports:", reportsResult);
 

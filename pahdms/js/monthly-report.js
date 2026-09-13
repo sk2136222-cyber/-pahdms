@@ -217,17 +217,30 @@ async function loadInstitutions() {
 
     try {
 
-        const { data, error } = await window.db
+        let instQuery = window.db
     .from("institutions")
     .select(`
         id,
         institution_code,
         institution_name,
-        institution_type
+        institution_type,
+        block
     `)
     .order("institution_code", {
         ascending: true
     });
+
+        const myBlock = await getMyBlock();
+        const currentUser = getCurrentUser();
+
+        if (currentUser && (currentUser.role === "vo" || currentUser.role === "vi")) {
+            // Institution-level accounts only see their own institution.
+            instQuery = instQuery.eq("id", currentUser.institution_id);
+        } else if (myBlock) {
+            instQuery = instQuery.eq("block", myBlock);
+        }
+
+        const { data, error } = await instQuery;
 
         if (error) {
 
@@ -408,6 +421,20 @@ async function loadMonthlyReports() {
 
 
         allReports = data || [];
+
+        // Block officers / VO / VI only see reports for institutions
+        // within their own scope. "institutions" was already scoped
+        // above by loadInstitutions(), so just keep matching reports.
+        const myBlock = await getMyBlock();
+        const currentUser = getCurrentUser();
+        const isScopedRole =
+            myBlock ||
+            (currentUser && (currentUser.role === "vo" || currentUser.role === "vi"));
+
+        if (isScopedRole) {
+            const allowedIds = new Set(institutions.map(i => i.id));
+            allReports = allReports.filter(r => allowedIds.has(r.institution_id));
+        }
 
 
         console.log(
@@ -982,6 +1009,22 @@ function openCreateReport() {
     console.log(
         "Create Monthly Report clicked"
     );
+
+    // Institution-level accounts (VO/VI) only ever create reports
+    // for their own institution — auto-select it and lock the field
+    // instead of showing a free-choice dropdown.
+    const user = getCurrentUser();
+    const createInstitutionField =
+        document.getElementById("createReportInstitution");
+
+    if (createInstitutionField) {
+        if (user && (user.role === "vo" || user.role === "vi")) {
+            createInstitutionField.value = user.institution_id || "";
+            createInstitutionField.disabled = true;
+        } else {
+            createInstitutionField.disabled = false;
+        }
+    }
 
 
     const modal =

@@ -10,13 +10,21 @@ document.addEventListener("DOMContentLoaded", function () {
 
 async function loadReportsData() {
 
+    const myBlock = await getMyBlock();
+
     // --------------------------------------
     // Institutions
     // --------------------------------------
 
-    const { data: institutions, error: instError } = await db
+    let instQuery = db
         .from("institutions")
         .select("institution_type, block, active");
+
+    if (myBlock) {
+        instQuery = instQuery.eq("block", myBlock);
+    }
+
+    const { data: institutions, error: instError } = await instQuery;
 
     if (instError) {
         console.error("Institutions Load Error:", instError);
@@ -26,9 +34,14 @@ async function loadReportsData() {
     // Employees
     // --------------------------------------
 
-    const { data: employees, error: empError } = await db
-        .from("employees")
-        .select("designation, active");
+    let empQuery = myBlock
+        ? db.from("employees")
+            .select("designation, active, institutions!inner(block)")
+            .eq("institutions.block", myBlock)
+        : db.from("employees")
+            .select("designation, active");
+
+    const { data: employees, error: empError } = await empQuery;
 
     if (empError) {
         console.error("Employees Load Error:", empError);
@@ -38,9 +51,14 @@ async function loadReportsData() {
     // Monthly Reports
     // --------------------------------------
 
-    const { data: reports, error: reportError } = await db
-        .from("mpr_reports")
-        .select("status");
+    let reportQuery = myBlock
+        ? db.from("mpr_reports")
+            .select("status, institutions!inner(block)")
+            .eq("institutions.block", myBlock)
+        : db.from("mpr_reports")
+            .select("status");
+
+    const { data: reports, error: reportError } = await reportQuery;
 
     if (reportError) {
         console.error("Reports Load Error:", reportError);

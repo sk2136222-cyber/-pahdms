@@ -298,6 +298,19 @@ if (!currentUser) throw new Error('Session expired. Please sign in again.');
 
   currentReport = { ...report, institutions: institution };
 
+  // Access check: VO/VI can only open their own institution's report;
+  // block_officer can only open reports from institutions in their block.
+  if (currentUser.role === 'vo' || currentUser.role === 'vi') {
+    if (report.institution_id !== currentUser.institution_id) {
+      throw new Error('You are not authorized to view this report.');
+    }
+  } else if (currentUser.role === 'block_officer') {
+    const myBlock = await getMyBlock();
+    if (myBlock && institution && institution.block !== myBlock) {
+      throw new Error('You are not authorized to view this report.');
+    }
+  }
+
   const { data:rows, error:rowsError } = await supabaseClient.from('mpr_section_data').select('*').eq('report_id',reportId);
   if (rowsError) throw rowsError;
   currentSections = {};

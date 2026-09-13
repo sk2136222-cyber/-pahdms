@@ -6,7 +6,7 @@ document.addEventListener("DOMContentLoaded", function () {
     console.log("Institution Module Loaded");
 
     const addBtn = document.getElementById("btnAddInstitution");
-    if (addBtn) addBtn.addEventListener("click", function () {
+    if (addBtn) addBtn.addEventListener("click", async function () {
         document.getElementById("editId").value = "";
         document.getElementById("code").value = "";
         document.getElementById("name").value = "";
@@ -14,6 +14,18 @@ document.addEventListener("DOMContentLoaded", function () {
         document.getElementById("block").value = "";
         document.getElementById("district").value = "Fazilka";
         document.getElementById("saveBtn").innerText = "Save Institution";
+
+        // Block officers can only create institutions in their own
+        // block, so lock the field to it instead of leaving it free-text.
+        const myBlock = await getMyBlock();
+        const blockField = document.getElementById("block");
+        if (myBlock) {
+            blockField.value = myBlock;
+            blockField.readOnly = true;
+        } else {
+            blockField.readOnly = false;
+        }
+
         openInstitutionModal();
     });
 
@@ -50,6 +62,12 @@ async function loadInstitutions() {
     let query = db
         .from("institutions")
         .select("*");
+
+    const myBlock = await getMyBlock();
+
+    if (myBlock) {
+        query = query.eq("block", myBlock);
+    }
 
     const typeFilter =
         document.getElementById("typeFilter").value;
@@ -314,6 +332,10 @@ loadInstitutions();
 
     document.getElementById("district").value = data.district;
 
+    // Lock the block field for block officers here too, so they
+    // can't move an institution out of their own block.
+    const myBlock = await getMyBlock();
+    document.getElementById("block").readOnly = !!myBlock;
 
     document.getElementById("saveBtn").innerText = "Update Institution";
 
