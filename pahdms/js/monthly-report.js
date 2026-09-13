@@ -1602,7 +1602,7 @@ async function loadTargets() {
 
         return `
             <tr>
-                <td>${esc(inst.institution_code)} - ${esc(inst.institution_name)}</td>
+                <td>${esc(inst.code)} - ${esc(inst.name)}</td>
                 <td><input type="number" min="0" id="targetOpd_${inst.id}" value="${opdVal}" style="width:100px;"></td>
                 <td><input type="number" min="0" id="targetAi_${inst.id}" value="${aiVal}" style="width:100px;"></td>
                 <td><button class="btn secondary" type="button" onclick="saveTarget('${inst.id}')">Save</button></td>
