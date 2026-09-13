@@ -6,6 +6,15 @@
 
 requireLogin();
 
+// VO/VI accounts are institution-level and only work with Monthly
+// Report — send them straight there instead of the district dashboard.
+(function redirectInstitutionUsersAway() {
+    const user = getCurrentUser();
+    if (user && (user.role === "vo" || user.role === "vi")) {
+        window.location.replace("monthly-report.html");
+    }
+})();
+
 /* ===========================
    Logged User
 =========================== */

@@ -205,7 +205,12 @@ function hideLocationGate() {
 // access via requireRole(), which remains the real gate.
 // =====================================
 const ROLE_RESTRICTED_LINKS = {
-    "live-tracking.html": ["district_admin", "block_officer"]
+    "live-tracking.html": ["district_admin", "block_officer"],
+    "dashboard.html": ["district_admin", "block_officer"],
+    "institution.html": ["district_admin", "block_officer"],
+    "employee_new.html": ["district_admin", "block_officer"],
+    "user-management.html": ["district_admin", "block_officer"],
+    "reports.html": ["district_admin", "block_officer"]
 };
 
 function applyRoleBasedNav() {

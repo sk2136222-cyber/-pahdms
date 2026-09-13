@@ -6,7 +6,16 @@ const currentUser =
     localStorage.getItem("currentUser") ||
     sessionStorage.getItem("currentUser");
 if (currentUser) {
-    window.location.href = "dashboard.html";
+    let redirectTo = "dashboard.html";
+    try {
+        const parsedUser = JSON.parse(currentUser);
+        if (parsedUser.role === "vo" || parsedUser.role === "vi") {
+            redirectTo = "monthly-report.html";
+        }
+    } catch (e) {
+        // malformed storage — fall back to dashboard.html as before
+    }
+    window.location.href = redirectTo;
 }
 // ===============================
 // Remember Me
@@ -165,7 +174,10 @@ if (document.getElementById("rememberMe").checked) {
     );
 }
 loginBtn.innerHTML="Success...";
-    window.location.href = "dashboard.html";
+    window.location.href =
+        (userData.role === "vo" || userData.role === "vi")
+            ? "monthly-report.html"
+            : "dashboard.html";
 }
 // ======================================
 // Show / Hide Password
