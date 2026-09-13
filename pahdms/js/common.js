@@ -246,6 +246,25 @@ function applyRoleBasedNav() {
 document.addEventListener("DOMContentLoaded", applyRoleBasedNav);
 
 // =====================================
+// Logged-in User Info (name + role in header)
+// Populates #loggedUserName / #loggedUserRole on any page that has
+// them, so pages other than dashboard.html (which already does this
+// itself) don't have to duplicate the logic.
+// =====================================
+function renderLoggedUserInfo() {
+    const user = getCurrentUser();
+    if (!user) return;
+
+    const nameEl = document.getElementById("loggedUserName");
+    const roleEl = document.getElementById("loggedUserRole");
+
+    if (nameEl) nameEl.innerText = user.full_name || user.username || "";
+    if (roleEl) roleEl.innerText = user.role || "";
+}
+
+document.addEventListener("DOMContentLoaded", renderLoggedUserInfo);
+
+// =====================================
 // Mobile Navigation (hamburger drawer)
 // Injects a hamburger button + overlay on any page that has a
 // .sidebar, so it can be shown/hidden off-canvas on small screens.
